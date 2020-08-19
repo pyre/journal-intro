@@ -1,0 +1,98 @@
+Liang,
+
+Suppose that in liang.py you have
+
+# externals
+import journal
+
+# your function
+def hello():
+    # make a channel
+    channel = journal.info("test.hello")
+    # say something
+    channel.log("hello!")
+    # all done
+    return
+
+# your application main entry point
+def main():
+    # invoke
+    hello()
+    # all done
+    return
+
+# bootstrap
+if __name__ == "__main__":
+    main()
+
+If you execute this script, it will send a journal info message to the
+default device, which is your terminal console. Changing the device to
+something else, say a file liang.log, is something that pyre encourages
+you to leave up to your actual users to decide. On the positive side,
+you don’t have to make this decision for them, on the negative you have
+to teach them how to do it, so instructions on how to do end-user
+journal things must find themselves in the documentation.
+
+To redirect all journal messages, regardless of channel type or channel
+name, there are basically three options:
+
+— Affect a single invocation of the application by using the command
+line:
+
+         ./liang.py --pyre.journal.device=journal.file --pyre.journal.device.log=liang.log
+
+The command line processing is done by pyre automatically; there is
+nothing for you to do.
+
+— Make this a more permanent choice by creating a journal configuration
+file; in journal.pfg,
+
+pyre.journal:
+  ; send output to a file
+  device = journal.file
+  ; named 'liang.log'
+  device.log = liang.log
+
+Again, nothing for you to do; pyre will take care of parsing the
+configuration file. The visibility of this configuration file determines
+its scope. If you put in your current working directory, it affects your
+app only when you invoke it from there, if you put it in your ~/.pyre
+directory, it will affect your app no matter where you run it from, and
+if you put it in the defaults directory of your pyre installation, it
+will affect all users that share that installation.
+
+— Hardwire this choice in your source code. You can change you main to
+read
+
+# your application main entry point
+def main():
+    # make a journal device that is attached to a file
+    journal.debug.journal.device = "journal.file"
+    # named 'liang.log'
+    journal.debug.journal.device.log = "liang.log"
+    # invoke
+    hello()
+    # all done
+    return
+
+I’d do this as a last resort, while debugging, and not leave it in the
+final code. As I mentioned, I think this is a bad idea, hence the
+obvious convenience function that would simplify this was never written.
+
+I have attached the sample files. You may need to adjust end-of-line
+conventions and give them execute permissions, depending on which mailer
+you use. Don’t forget that while journal.log is visible, it is applied,
+so if you start wandering why your output disappears, check for it in
+liang.log. You must rename the configuration file to disable it.
+
+Hope this helps.
+
+— Michael
+
+P.S. The journal at the head of the pyre repository is from the upcoming
+version 2.0. It is a complete rewrite relative to the version that isce3
+uses, and has quite a bit more functionality. However, the basic usage,
+such as what you would have to add to your source base to send logging
+to journal, is pretty much the same. Most of the changes affect the way
+you control journal. So it’s ok to start using it, as the migration path
+to 2.0 is not going to be very bumpy.

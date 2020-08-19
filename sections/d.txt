@@ -1,0 +1,50 @@
+journal is very simple to use. If you have access to a recent copy of pyre
+(git@github.com:pyre/pyre), look at tests/journal.lib/*_example.cc for examples of how to use
+the journal in c++, and tests/journal.api/*_example.py for the corresponding python.
+
+In general, messages are logged into channels. Each channel has a severity and a name. The
+severity is a compile time attribute, determined by the constructor you invoke. The name is a
+runtime choice. For example
+
+    …
+    #include <pyre/journal.h>
+    …
+    void foo() {
+        …
+        // make a channel
+        pyre::journal::info_t channel(“isce3.geocode”);
+        // say something
+        channel
+            << “Hello world!”
+            // the macro is provided by journal and logs source file, line, function name
+            << pyre::journal::endl(__HERE__);
+
+in c++, and
+
+    import journal
+    …
+    def foo():
+        …
+        # make a channel
+        channel = journal.info(name=“isce3.geocode”)
+        # say something
+        # source, line, function name are automatically extracted from the python stack trace
+        channel.log(“Hello world!”)
+
+in python.
+
+There are five severities. Three (error, warning, info) are end-user facing, the other two
+(firewall, debug) are meant for developers and are optimized away for release build. Firewall
+and error are fatal: they raise exceptions when anything is written to them. You can make them
+non-fatal on a per channel basis or in bulk, or catch the exception and do something with
+it. Debug is the developer version of info, firewall is reserved for reporting serious
+constraint violations, so that a firewall that fires is an indication that the code has
+self-caught a bug.
+
+Channels of the same severity+name all share a common state, across both the python and c++
+codebase. This means that you can instantiate a channel in your main python script, configure
+it to send output to a file, and become fatal, and then access a channel by the same
+severity+name far away in the C++ code and have the output go to the same file without having
+to pass the channel around as application context. The names work best when you do a bit of
+namespace design for them ahead of time. They are hierarchical, with scopes separated by
+dots. Something like “isce3.geocode.projection” would be a good name for a channel.

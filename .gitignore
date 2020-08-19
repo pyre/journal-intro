@@ -1,0 +1,20 @@
+# ignore rules
+
+*~
+
+# tex lint
+*.aux
+*.bbl
+*.blg
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+# ignore pdfs
+*.pdf
+# but not those that are figures
+!figures/*.pdf
+
+# end of file
